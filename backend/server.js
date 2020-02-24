@@ -12,7 +12,7 @@ app.use(index);
 const server = http.createServer(app);
 const io = socketIo(server);
 
-const rooms = {};
+const rooms = new Map();
 
 const playersArray = room =>
   Array.from(rooms[room]).map(([username, socket]) => ({
