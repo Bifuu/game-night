@@ -49,5 +49,10 @@ export const Game = ({ user, players }) => {
     return <OneLeft user={user} players={players} />;
   };
 
-  return <PlayArea>{!game ? ChooseGame() : PlayGame()}</PlayArea>;
+  return (
+    <PlayArea>
+      {user.leader ? <button>End game</button> : null}{' '}
+      {!game ? ChooseGame() : PlayGame()}
+    </PlayArea>
+  );
 };
