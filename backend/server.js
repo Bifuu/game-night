@@ -1,6 +1,9 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+const mongoose = require('mongoose');
+require('dotenv').config();
+
 const olg = require('./OneLeftGame');
 // const axios = require('axios');
 
@@ -12,6 +15,17 @@ app.use(index);
 const server = http.createServer(app);
 const io = socketIo(server);
 
+mongoose.connect(process.env.MONGO_DB, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+});
+
+const Room = mongoose.model('Room', {
+  roomId: String,
+  players: [{ username: String, socketId: String, leader: Boolean }],
+});
+
 const rooms = new Map();
 
 const playersArray = room =>
@@ -20,6 +34,36 @@ const playersArray = room =>
     leader: socket.leader,
     socketId: socket.socketId,
   }));
+
+const addPlayerToRoom = (room, socket) => {
+  Room.findOne({ roomId: room }, (err, r) => {
+    if (!r) {
+      const newRoom = new Room({
+        roomId: room,
+        players: [
+          { username: socket.username, socketId: socket.id, leader: true },
+        ],
+      });
+      newRoom.save();
+    } else {
+      r.players.push({
+        username: socket.username,
+        socketId: socket.id,
+        leader: false,
+      });
+      r.save();
+    }
+  });
+};
+
+const removePlayerFromRoom = (room, socket) => {
+  Room.findOne({ roomId: room }, (err, r) => {
+    const wasLeader = r.players.find(p => p.socketId === socket.id).leader;
+    r.players = r.players.filter(p => p.socketId !== socket.id);
+    if (wasLeader && r.players.length > 0) r.players[0].leader = true;
+    r.save();
+  });
+};
 
 io.on('connection', socket => {
   console.log('New client connected', socket.id);
@@ -40,6 +84,7 @@ io.on('connection', socket => {
     console.log(`${username} is trying to connect to ${room}`);
     socket.username = username;
     socket.room = room;
+    addPlayerToRoom(room, socket);
     if (rooms[room] === undefined) {
       socket.leader = true;
       rooms[room] = new Map();
@@ -70,6 +115,7 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     if (loggedIn) {
       rooms[socket.room].delete(socket.username);
+      removePlayerFromRoom(socket.room, socket);
 
       console.log(
         `${socket.username} has logged out. ${
