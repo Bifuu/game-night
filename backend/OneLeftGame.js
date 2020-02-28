@@ -8,7 +8,7 @@
 const OneLeftDeck = require('./OlgDeck');
 
 const game = (io, playerData) => {
-  console.log('====OLG game====');
+  console.log(`====OLG game starting for ${playerData.room}====`);
   console.log(playerData);
   const gameRoom = playerData.room;
   const playerMap = new Map();
@@ -45,7 +45,6 @@ const game = (io, playerData) => {
 
   const startTurnFor = username => {
     currentTurn = players.findIndex(p => p.username === username);
-    console.log(`Starting turn for ${username}, index: ${currentTurn}`);
     playerMap.get(username).emit('turn start');
     io.of('/oneleftgame')
       .to(gameRoom)
@@ -54,8 +53,6 @@ const game = (io, playerData) => {
 
   const DealCards = () => {
     // Deal cards from deck
-    console.log(playerMap);
-    console.log(players);
     players = players.map(player => {
       const p = {
         ...player,
@@ -88,9 +85,6 @@ const game = (io, playerData) => {
   };
 
   const startOneLeft = gamePlayers => {
-    console.log('Starting a game of One Left!');
-    console.log(gamePlayers);
-
     // Grab a copy of the uno deck and shuffle it.
     unoDeck = shuffleDeck(OneLeftDeck.slice());
 
