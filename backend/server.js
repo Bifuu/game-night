@@ -84,7 +84,7 @@ io.on('connection', socket => {
     console.log(`${username} is trying to connect to ${room}`);
     socket.username = username;
     socket.room = room;
-    addPlayerToRoom(room, socket);
+    // addPlayerToRoom(room, socket);
     if (rooms[room] === undefined) {
       socket.leader = true;
       rooms[room] = new Map();
@@ -115,7 +115,7 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     if (loggedIn) {
       rooms[socket.room].delete(socket.username);
-      removePlayerFromRoom(socket.room, socket);
+      // removePlayerFromRoom(socket.room, socket);
 
       console.log(
         `${socket.username} has logged out. ${
