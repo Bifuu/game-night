@@ -4,7 +4,7 @@ const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const olg = require('./OneLeftGame');
+const OneLeftGame = require('./OneLeftGame');
 // const axios = require('axios');
 
 const port = process.env.PORT || 4001;
@@ -135,7 +135,7 @@ io.on('connection', socket => {
   socket.on('olg start', data => {
     console.log('OLG starting....');
     socket.to(socket.room).emit('starting olg');
-    olg(io, data);
+    const game = new OneLeftGame(io, data);
   });
 });
 
